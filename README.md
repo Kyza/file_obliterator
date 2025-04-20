@@ -11,7 +11,7 @@ I made this because all the other tools come with UI that takes forever to launc
 The setup will cleanly restart `explorer.exe`, so your open folders won't be lost.
 
 ```bash
-cargo install file_obliterator
+cargo install --git https://github.com/Kyza/file_obliterator
 # Runs the setup.
 file_obliterator
 # Or more verbose:
