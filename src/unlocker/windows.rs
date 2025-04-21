@@ -36,12 +36,9 @@ pub fn clean_restart_explorer() -> Result<()> {
 			"-Command",
 			"((New-Object -com shell.application).Windows() | ForEach-Object { $_.Document.Folder.Self.Path }) -join \"`n\""
 		])
-		.output()
-		.expect("Failed to get open folders");
+		.output()?;
 
-	let paths_str = str::from_utf8(&output.stdout)
-		.expect("Invalid UTF-8 in PowerShell output")
-		.trim();
+	let paths_str = str::from_utf8(&output.stdout)?.trim();
 
 	let open_folders = paths_str
 		.lines()
@@ -53,18 +50,12 @@ pub fn clean_restart_explorer() -> Result<()> {
 		.arg("/IM")
 		.arg("explorer.exe")
 		.arg("/F")
-		.output()
-		.expect("Failed to restart explorer.exe");
+		.output()?;
 
-	Command::new("explorer")
-		.output()
-		.expect("Failed to restart explorer.exe");
+	Command::new("explorer").output()?;
 
 	for folder in open_folders {
-		Command::new("explorer")
-			.arg(folder)
-			.output()
-			.expect("Failed to restart explorer.exe");
+		Command::new("explorer").arg(folder).output()?;
 	}
 
 	Ok(())
