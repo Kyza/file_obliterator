@@ -169,9 +169,23 @@ fn start() -> Result<()> {
 		return Ok(());
 	}
 
+	// Save the original path args.
+	// Everything that needs to be deleted can be with just these.
+	let original_paths = args
+		.files
+		.clone()
+		.iter()
+		.map(|path| PathBuf::from(path))
+		.collect::<Vec<_>>();
+
+	// Print them for the user.
+	for path in original_paths.clone() {
+		println!("{}", path.to_string_lossy());
+	}
+
 	// A path here can be either a file or a folder.
 	// Add folders with their contents recursively.
-	let paths = args
+	let paths_no_folders_winapi = args
 		.files
 		.clone()
 		.into_iter()
@@ -192,41 +206,33 @@ fn start() -> Result<()> {
 				vec![path]
 			}
 		})
-		.collect::<Vec<_>>();
-
-	// Print them.
-	for path in paths.clone() {
-		println!("{}", path.to_string_lossy());
-	}
-
-	// Filter all the folders.
-	let paths_no_folders_winapi = paths
-		.clone()
-		.into_iter()
 		.filter(|path| !path.is_dir())
 		.map(|path| path.to_string_lossy().to_string())
 		.collect::<Vec<_>>();
 
 	match args.action {
 		Action::Unlock => {
+			println!("Unlocking targets.");
 			unsafe {
 				unlocker::windows::unlock_files(paths_no_folders_winapi)
 			}?;
 		}
 		Action::Obliterate => {
-			println!("This will delete the above files.");
+			println!("This will delete the above files/folders.");
 			println!("Are you sure? (y/n)");
 			let mut input = String::new();
 			std::io::stdin().read_line(&mut input).unwrap();
 			if input.trim().to_lowercase() == "y" {
+				println!("Unlocking targets.");
 				unsafe {
 					unlocker::windows::unlock_files(paths_no_folders_winapi)
 				}?;
-				for path in paths {
+				println!("Deleting targets.");
+				for path in original_paths {
+					// A previous argument could have been a file in a folder also marked for deletion.
 					if path.exists() {
 						println!("Deleting: {}", path.to_string_lossy());
 						if path.is_dir() {
-							// If fails to delete directory, stop explorer.exe and retry.
 							if fs::remove_dir_all(path.clone()).is_err() {
 								println!(
 									"Failed to delete. This is likely the \

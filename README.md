@@ -32,11 +32,6 @@ If you uninstall the tool, don't forget to run the unsetup to remove the context
 file_obliterator -a unsetup
 ```
 
-## TODO
-
-- Parallelize unlocking.
-- Parallelize deletion.
-
 ## Contributing
 
 PRs are welcome, especially for other operating systems.
